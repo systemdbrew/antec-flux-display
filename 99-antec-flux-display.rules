@@ -1,4 +1,2 @@
-# Antec Flux Pro Display - allow non-root access to the HID device
-SUBSYSTEM=="usb", ATTR{idVendor}=="2022", ATTR{idProduct}=="0522", MODE="0666", TAG+="uaccess"
-# Also match the hidraw device
-KERNEL=="hidraw*", ATTRS{idVendor}=="2022", ATTRS{idProduct}=="0522", MODE="0666", TAG+="uaccess"
+# Antec Flux Pro Display - allow only the dedicated service group to use usbfs
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTR{idVendor}=="2022", ATTR{idProduct}=="0522", GROUP="antec-flux-display", MODE="0660"

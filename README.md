@@ -34,7 +34,7 @@ Protocol details were reverse-engineered from the Antec iUnity Windows binary. C
 ## Requirements
 
 - Python 3.10+
-- `python-pyusb` (Arch/CachyOS) or `pyusb` (pip)
+- `python-pyusb` (Arch/CachyOS), `python3-usb` (Debian/Ubuntu), or your distribution's PyUSB package
 - Internal USB 2.0 header connected to the Flux Pro display cable
 
 ## Installation
@@ -46,10 +46,11 @@ sudo bash install.sh
 ```
 
 The install script will:
-1. Install `python-pyusb` if not present
-2. Copy the service script to `/opt/antec-flux-display/`
-3. Install a udev rule for device permissions
-4. Install and enable a systemd service
+1. Install PyUSB from distribution packages if not present
+2. Create an `antec-flux-display` system user and group
+3. Copy the service script to `/opt/antec-flux-display/`
+4. Install a udev rule that grants device access only to the service group
+5. Install and enable a hardened systemd service
 
 ## Uninstallation
 
@@ -59,7 +60,8 @@ sudo bash uninstall.sh
 
 ## Usage
 
-The service starts automatically on boot. Manage it with:
+The service starts automatically on boot and runs as the unprivileged
+`antec-flux-display` system user. Manage it with:
 
 ```bash
 # Check status
@@ -118,7 +120,7 @@ By default, CPU reads `temp1_input` (Tctl on AMD) and GPU reads `temp1_input` (e
 
 ### Service fails to start
 - Verify the display is connected: `lsusb | grep 2022`
-- Try running manually: `sudo python3 /opt/antec-flux-display/antec-flux-display.py`
+- Try running manually as the service account: `sudo -u antec-flux-display python3 /opt/antec-flux-display/antec-flux-display.py`
 - Check that pyusb is installed: `python3 -c "import usb.core; print('ok')"`
 
 ### Slow boot with display connected
@@ -126,6 +128,15 @@ Some motherboard USB headers cause enumeration delays with this device. Try a di
 
 ### Device not found but lsusb shows it
 The device only has an interrupt OUT endpoint and doesn't enumerate as standard HID on Linux. This service uses pyusb/libusb to communicate directly. Make sure `python-pyusb` is installed, not `python-hidapi`.
+
+If the service reports a permission error, reload the installed udev rule and
+replug the display USB header:
+
+```bash
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+sudo systemctl restart antec-flux-display
+```
 
 ## Hardware Compatibility
 

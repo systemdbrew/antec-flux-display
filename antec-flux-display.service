@@ -9,15 +9,38 @@ Type=simple
 ExecStart=/usr/bin/python3 /opt/antec-flux-display/antec-flux-display.py
 Restart=on-failure
 RestartSec=5
+User=antec-flux-display
+Group=antec-flux-display
+WorkingDirectory=/opt/antec-flux-display
+UMask=0077
 
 # Security hardening
-ProtectSystem=strict
-ProtectHome=true
-PrivateTmp=true
+CapabilityBoundingSet=
+DevicePolicy=closed
+DeviceAllow=char-usb_device rw
+KeyringMode=private
+LockPersonality=true
+MemoryDenyWriteExecute=true
 NoNewPrivileges=true
-
-# Allow USB HID access
-SupplementaryGroups=plugdev
+PrivateNetwork=true
+PrivateTmp=true
+ProcSubset=pid
+ProtectClock=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectProc=invisible
+ProtectSystem=strict
+ReadOnlyPaths=/sys/class/hwmon
+RemoveIPC=true
+RestrictAddressFamilies=AF_UNIX AF_NETLINK
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+SystemCallArchitectures=native
 
 [Install]
 WantedBy=multi-user.target
