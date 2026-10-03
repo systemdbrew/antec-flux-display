@@ -40,7 +40,7 @@ Protocol details were reverse-engineered from the Antec iUnity Windows binary. C
 ## Installation
 
 ```bash
-git clone https://github.com/YOURUSERNAME/antec-flux-display.git
+git clone https://github.com/systemdbrew/antec-flux-display.git
 cd antec-flux-display
 sudo bash install.sh
 ```
