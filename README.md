@@ -2,7 +2,7 @@
 
 A lightweight Python service that sends CPU and GPU temperatures to the Antec Flux Pro case's front panel display on Linux. No Windows or Antec iUnity software required.
 
-Tested on CachyOS (Arch-based) with AMD Ryzen 9900X + AMD 7900 XTX. Should work on any Linux distro with Python 3 and an AMD CPU/GPU, with minor tweaks for Intel/NVIDIA (see [Configuration](#configuration)).
+Tested on CachyOS (Arch-based) with AMD Ryzen 9900X + AMD 7900 XTX. Should work on any Linux distro with Python 3 and an AMD or Intel CPU. An AMD GPU is read automatically; other GPUs need a small tweak, and without one the GPU line shows `--.-` (see [Configuration](#configuration)).
 
 ## How It Works
 
@@ -94,13 +94,10 @@ gpu_hwmon = find_hwmon_path("nvidia")
 You may also need to check which `temp*_input` file corresponds to GPU temp.
 
 ### Intel CPU
-Change the CPU hwmon lookup:
-```python
-cpu_hwmon = find_hwmon_path("coretemp")
-```
+No changes needed. If `k10temp` is not present, the service reads the `coretemp` sensor labelled `Package id`. Without an AMD GPU the GPU line shows `--.-`.
 
 ### Temperature source
-By default, CPU reads `temp1_input` (Tctl on AMD) and GPU reads `temp1_input` (edge on AMD). To change, modify the `cpu_temp_file` or `gpu_temp_file` variables. Common options:
+By default, CPU reads `temp1_input` (Tctl on AMD) and GPU reads `temp1_input` (edge on AMD). To change, edit the temperature file name returned for `k10temp` in `find_cpu_sensor()`, or the `gpu_temp_file` variable. Common options:
 
 **k10temp (AMD CPU):**
 - `temp1_input` — Tctl (default, includes +15°C offset on some CPUs)
@@ -142,6 +139,7 @@ sudo systemctl restart antec-flux-display
 
 Confirmed working:
 - Antec Flux Pro (2024)
+- Antec Flux Pro with Intel Core Ultra 7 270K Plus, ASUS ROG Maximus Z890 Hero, integrated graphics only (Ubuntu Server 26.04, Linux 7.2.12): CPU temperature shown, GPU line shows `--.-`
 
 Likely compatible (same display module):
 - Other Antec cases using the iUnity display
