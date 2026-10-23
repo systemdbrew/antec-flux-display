@@ -44,6 +44,28 @@ def find_hwmon_path(device_name: str) -> str | None:
     return None
 
 
+def find_cpu_sensor() -> tuple[str, str] | None:
+    """Find the CPU package temperature as (hwmon path, temperature file).
+
+    AMD: k10temp, temp1_input (Tctl).
+    Intel: coretemp, the temp*_input whose label starts with "Package id".
+    """
+    hwmon = find_hwmon_path("k10temp")
+    if hwmon:
+        return hwmon, "temp1_input"
+
+    hwmon = find_hwmon_path("coretemp")
+    if hwmon:
+        for label_path in sorted(glob.glob(f"{hwmon}/temp*_label")):
+            try:
+                with open(label_path) as f:
+                    if f.read().strip().startswith("Package id"):
+                        return hwmon, label_path.replace("_label", "_input").rsplit("/", 1)[1]
+            except (IOError, OSError):
+                continue
+    return None
+
+
 def read_temp(hwmon_path: str, input_file: str = "temp1_input") -> float:
     """Read temperature from hwmon sysfs (returns °C)."""
     try:
@@ -150,20 +172,19 @@ def open_display():
 
 
 def main() -> int:
-    cpu_hwmon = find_hwmon_path("k10temp")
-    if not cpu_hwmon:
-        LOG.error("k10temp hwmon not found. Is the k10temp module loaded?")
+    cpu_sensor = find_cpu_sensor()
+    if not cpu_sensor:
+        LOG.error("No CPU temperature sensor found. Are the k10temp (AMD) or coretemp (Intel) modules loaded?")
         return 1
+    cpu_hwmon, cpu_temp_file = cpu_sensor
 
     gpu_hwmon = find_hwmon_path("amdgpu")
     if not gpu_hwmon:
         LOG.warning("amdgpu hwmon not found. GPU temp will show --.-")
 
-    LOG.info("CPU sensor: %s", cpu_hwmon)
+    LOG.info("CPU sensor: %s/%s", cpu_hwmon, cpu_temp_file)
     LOG.info("GPU sensor: %s", gpu_hwmon or "not found")
 
-    # k10temp: temp1_input = Tctl
-    cpu_temp_file = "temp1_input"
     # amdgpu: temp1_input = edge
     gpu_temp_file = "temp1_input"
 
